@@ -12,3 +12,28 @@ datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
+
+model Homework {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  deadline    DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  subjectId   Int?
+
+  Subject Subject? @relation(fields: [subjectId], references: [id])
+}
+
+model Subject {
+  id        Int        @id @default(autoincrement())
+  name      String
+  homeworks Homework[]
+}
+
+model State {
+  id    Int    @id @default(autoincrement())
+  name  String
+  color String
+  icon  String
+}
