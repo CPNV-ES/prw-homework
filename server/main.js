@@ -1,6 +1,7 @@
 import express from "express";
 import homeworkRoutes from "./src/routes/homeworks.js";
 import subjectRoutes from "./src/routes/subjects.js";
+import stateRoutes from "./src/routes/states.js";
 
 const app = express();
 
@@ -8,6 +9,7 @@ app.use(express.json());
 
 app.use("/homeworks", homeworkRoutes);
 app.use("/subjects", subjectRoutes);
+app.use("/states", stateRoutes);
 
 app.get("/", async (req, res) => {
   res.status(200).json({ status: "OK" });
