@@ -1,13 +1,9 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "../../prisma/prismaClient.js";
 
 export default class StateService {
-  constructor() {
-    this.prisma = new PrismaClient();
-  }
-
   async createState(name, color, icon) {
     try {
-      const newState = await this.prisma.state.create({
+      const newState = await prisma.state.create({
         data: {
           name: name,
           color: color,
@@ -23,7 +19,7 @@ export default class StateService {
 
   async getAllStates() {
     try {
-      const states = await this.prisma.state.findMany();
+      const states = await prisma.state.findMany();
       return states;
     } catch (error) {
       console.error("Error fetching states:", error);
@@ -33,7 +29,7 @@ export default class StateService {
 
   async getStateById(id) {
     try {
-      const state = await this.prisma.state.findUnique({
+      const state = await prisma.state.findUnique({
         where: { id: id },
       });
       return state;
@@ -45,7 +41,7 @@ export default class StateService {
 
   async updateState(id, name, color, icon) {
     try {
-      const updatedState = await this.prisma.state.update({
+      const updatedState = await prisma.state.update({
         where: { id: id },
         data: {
           name: name,
@@ -62,7 +58,7 @@ export default class StateService {
 
   async deleteState(id) {
     try {
-      const deletedState = await this.prisma.state.delete({
+      const deletedState = await prisma.state.delete({
         where: { id: id },
       });
       return deletedState;

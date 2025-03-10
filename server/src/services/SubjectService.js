@@ -1,13 +1,9 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "../../prisma/prismaClient.js";
 
 export default class SubjectService {
-  constructor() {
-    this.prisma = new PrismaClient();
-  }
-
   async createSubject(name) {
     try {
-      const newSubject = await this.prisma.subject.create({
+      const newSubject = await prisma.subject.create({
         data: {
           name: name,
         },
@@ -21,7 +17,7 @@ export default class SubjectService {
 
   async getAllSubjects() {
     try {
-      const subjects = await this.prisma.subject.findMany();
+      const subjects = await prisma.subject.findMany();
       return subjects;
     } catch (error) {
       console.error("Error fetching subjects:", error);
@@ -31,7 +27,7 @@ export default class SubjectService {
 
   async getSubjectById(id) {
     try {
-      const subject = await this.prisma.subject.findUnique({
+      const subject = await prisma.subject.findUnique({
         where: { id: id },
       });
       return subject;
@@ -43,7 +39,7 @@ export default class SubjectService {
 
   async updateSubject(id, name) {
     try {
-      const updatedSubject = await this.prisma.subject.update({
+      const updatedSubject = await prisma.subject.update({
         where: { id: id },
         data: {
           name: name,
@@ -58,7 +54,7 @@ export default class SubjectService {
 
   async deleteSubject(id) {
     try {
-      const deletedSubject = await this.prisma.subject.delete({
+      const deletedSubject = await prisma.subject.delete({
         where: { id: id },
       });
       return deletedSubject;
