@@ -1,19 +1,13 @@
 import express from "express";
-import {
-  createHomework,
-  getAllHomework,
-  getHomeworkById,
-  updateHomework,
-  deleteHomework,
-} from "../services/HomeworkService.js";
+import HomeworkService from "../services/HomeworkService.js";
 
 const router = express.Router();
+const service = new HomeworkService();
 
-// Route to create a new homework
 router.post("/", async (req, res) => {
   try {
     const { title, description, deadline, subjectId } = req.body;
-    const newHomework = await createHomework(
+    const newHomework = await service.createHomework(
       title,
       description,
       deadline,
@@ -25,21 +19,19 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Route to get all homework
 router.get("/", async (req, res) => {
   try {
-    const homeworks = await getAllHomework();
+    const homeworks = await service.getAllHomework();
     res.status(200).json(homeworks);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch homeworks" });
   }
 });
 
-// Route to get a homework by ID
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const homework = await getHomeworkById(parseInt(id));
+    const homework = await service.getHomeworkById(parseInt(id));
     if (homework) {
       res.status(200).json(homework);
     } else {
@@ -50,12 +42,11 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Route to update a homework by ID
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, deadline, subjectId } = req.body;
-    const updatedHomework = await updateHomework(
+    const updatedHomework = await service.updateHomework(
       parseInt(id),
       title,
       description,
@@ -68,11 +59,10 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// Route to delete a homework by ID
 router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedHomework = await deleteHomework(parseInt(id));
+    const deletedHomework = await service.deleteHomework(parseInt(id));
     res.status(200).json(deletedHomework);
   } catch (error) {
     res.status(500).json({ error: "Failed to delete homework" });
