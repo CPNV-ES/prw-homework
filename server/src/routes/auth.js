@@ -28,13 +28,18 @@ router.get("/discord/callback", async (req, res) => {
 
 router.get("/verify", async (req, res) => {
   try {
-    const token =
-      req.headers.authorization?.split(" ")[1] ||
-      req.cookies?.[authConfig.cookie.name];
+    const token = req.cookies[authConfig.cookie.name];
+
     if (!token) {
-      throw new Error("No token provided");
+      return res.status(401).json({ error: "No token provided" });
     }
+
     const user = await authService.verifyToken(token);
+
+    if (!user) {
+      return res.status(401).json({ error: "Invalid token" });
+    }
+
     res.json(user);
   } catch (error) {
     res.status(401).json({ error: error.message });
