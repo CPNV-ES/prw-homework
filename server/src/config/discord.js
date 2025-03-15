@@ -1,7 +1,7 @@
 export const discordConfig = {
   clientId: process.env.DISCORD_CLIENT_ID,
   clientSecret: process.env.DISCORD_CLIENT_SECRET,
-  redirectUri: "http://localhost:3000/auth/discord/callback",
+  redirectUri: process.env.DISCORD_REDIRECT_URI,
   scope: "identify email",
   api: {
     tokenUrl: "https://discord.com/api/oauth2/token",
