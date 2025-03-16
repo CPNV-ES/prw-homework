@@ -1,9 +1,20 @@
 import express from "express";
 import AuthService from "../services/Auth/AuthService.js";
 import { authConfig } from "../config/auth.js";
+import { discordConfig } from "../config/discord.js";
 
 const router = express.Router();
 const authService = new AuthService();
+
+router.get("/discord", (req, res) => {
+  const authUrl = new URL("https://discord.com/api/oauth2/authorize");
+  authUrl.searchParams.append("client_id", discordConfig.clientId);
+  authUrl.searchParams.append("redirect_uri", discordConfig.redirectUri);
+  authUrl.searchParams.append("response_type", "code");
+  authUrl.searchParams.append("scope", discordConfig.scope);
+
+  res.redirect(authUrl.toString());
+});
 
 router.get("/discord/callback", async (req, res) => {
   try {
@@ -44,6 +55,12 @@ router.get("/verify", async (req, res) => {
   } catch (error) {
     res.status(401).json({ error: error.message });
   }
+});
+
+router.get("/logout", (req, res) => {
+  console.log(`User logged out: ${req.ip}`);
+  res.clearCookie(authConfig.cookie.name, authConfig.cookie.options);
+  res.json({ success: true, message: "Logged out successfully" });
 });
 
 export default router;
