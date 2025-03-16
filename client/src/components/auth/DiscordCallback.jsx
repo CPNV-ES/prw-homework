@@ -28,7 +28,6 @@ function DiscordCallback() {
         // Redirect to home page on success
         navigate("/");
       } catch (err) {
-        console.error("Discord auth error:", err);
         setError(err.response?.data?.error || "Authentication failed");
       }
     };
