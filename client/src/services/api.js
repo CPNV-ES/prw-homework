@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 
 // Update the API_URL to match the server's actual endpoint structure
 // The server doesn't have an /api prefix
@@ -10,7 +10,15 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Important for cookies
 });
+
+// Auth API calls
+export const verifyAuth = () => api.get("/auth/verify");
+export const getDiscordAuthUrl = () => `${API_URL}/auth/discord`;
+export const handleDiscordCallback = (code) =>
+  api.get(`/auth/discord/callback?code=${code}`);
+export const logout = () => api.get("/auth/logout");
 
 // Homework API calls
 export const getHomeworks = () => api.get('/homeworks');
