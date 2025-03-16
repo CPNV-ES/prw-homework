@@ -58,7 +58,6 @@ router.get("/verify", async (req, res) => {
 });
 
 router.get("/logout", (req, res) => {
-  console.log(`User logged out: ${req.ip}`);
   res.clearCookie(authConfig.cookie.name, authConfig.cookie.options);
   res.json({ success: true, message: "Logged out successfully" });
 });
