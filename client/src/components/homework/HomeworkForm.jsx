@@ -15,7 +15,8 @@ function HomeworkForm() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    deadline: '',
+    date: '',
+    time: '23:59',
     subjectId: '',
     notificationThreshold: 24
   });
@@ -38,14 +39,16 @@ function HomeworkForm() {
           const homeworkResponse = await getHomeworkById(id);
           const homework = homeworkResponse.data;
           
-          // Format the date for the input field (YYYY-MM-DD)
+          // Format the date and time for the input fields
           const deadlineDate = new Date(homework.deadline);
           const formattedDate = deadlineDate.toISOString().split('T')[0];
+          const formattedTime = deadlineDate.toTimeString().slice(0, 5);
           
           setFormData({
             title: homework.title,
             description: homework.description,
-            deadline: formattedDate,
+            date: formattedDate,
+            time: formattedTime,
             subjectId: homework.subjectId || '',
             notificationThreshold: homework.notificationThreshold || 24
           });
@@ -76,10 +79,16 @@ function HomeworkForm() {
     try {
       setSubmitting(true);
       
+      // Combine date and time into a single ISO string
+      const deadline = new Date(`${formData.date}T${formData.time}`);
+      
       // Prepare data for submission
       const homeworkData = {
-        ...formData,
-        subjectId: formData.subjectId ? parseInt(formData.subjectId) : null
+        title: formData.title,
+        description: formData.description,
+        deadline: deadline.toISOString(),
+        subjectId: formData.subjectId ? parseInt(formData.subjectId) : null,
+        notificationThreshold: parseInt(formData.notificationThreshold)
       };
       
       if (isEditMode) {
@@ -137,17 +146,32 @@ function HomeworkForm() {
           ></textarea>
         </div>
         
-        <div className="mb-3">
-          <label htmlFor="deadline" className="form-label">Deadline</label>
-          <input
-            type="date"
-            className="form-control"
-            id="deadline"
-            name="deadline"
-            value={formData.deadline}
-            onChange={handleChange}
-            required
-          />
+        <div className="row">
+          <div className="col-md-6 mb-3">
+            <label htmlFor="date" className="form-label">Date</label>
+            <input
+              type="date"
+              className="form-control"
+              id="date"
+              name="date"
+              value={formData.date}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          
+          <div className="col-md-6 mb-3">
+            <label htmlFor="time" className="form-label">Time</label>
+            <input
+              type="time"
+              className="form-control"
+              id="time"
+              name="time"
+              value={formData.time}
+              onChange={handleChange}
+              required
+            />
+          </div>
         </div>
         
         <div className="mb-3">
