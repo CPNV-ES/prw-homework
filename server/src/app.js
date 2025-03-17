@@ -5,6 +5,8 @@ import homeworkRoutes from "./routes/homeworks.js";
 import subjectRoutes from "./routes/subjects.js";
 import stateRoutes from "./routes/states.js";
 import authRoutes from "./routes/auth.js";
+import { discordNotification } from './services/DiscordNotification.js';
+import { discordConfig } from './config/discord.js';
 
 const app = express();
 

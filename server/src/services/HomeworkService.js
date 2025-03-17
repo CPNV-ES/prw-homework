@@ -1,7 +1,7 @@
 import prisma from "../../prisma/prismaClient.js";
 
 export default class HomeworkService {
-  async createHomework(title, description, deadline, subjectId, stateId) {
+  async createHomework(title, description, deadline, subjectId, stateId, notificationThreshold) {
     try {
       const newHomework = await prisma.homework.create({
         data: {
@@ -10,6 +10,7 @@ export default class HomeworkService {
           deadline: new Date(deadline),
           subjectId: subjectId,
           stateId: stateId,
+          notificationThreshold: parseInt(notificationThreshold, 10) || 24
         },
         include: {
           Subject: true,
@@ -54,7 +55,7 @@ export default class HomeworkService {
     }
   }
 
-  async updateHomework(id, title, description, deadline, subjectId, stateId) {
+  async updateHomework(id, title, description, deadline, subjectId, stateId, notificationThreshold) {
     try {
       const updatedHomework = await prisma.homework.update({
         where: { id: id },
@@ -64,6 +65,7 @@ export default class HomeworkService {
           deadline: new Date(deadline),
           subjectId: subjectId,
           stateId: stateId,
+          notificationThreshold: notificationThreshold || 24
         },
         include: {
           Subject: true,
