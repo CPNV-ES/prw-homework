@@ -1,8 +1,115 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { getStates, getHomeworks, updateHomework } from '../services/api';
+import { Link } from 'react-router-dom';
 
-const KanbanColumn = ({ title, tasks, onDragOver, onDrop, color }) => {
+const HomeworkModal = ({ homework, show, onClose }) => {
+  if (!show || !homework) return null;
+
+  const handleBackdropClick = (e) => {
+    // Only close if clicking the backdrop itself, not its children
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  return (
+    <>
+      <div 
+        className="modal fade show" 
+        style={{ display: 'block' }} 
+        tabIndex="-1"
+        onClick={handleBackdropClick}
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">{homework.title}</h5>
+              <button type="button" className="btn-close" onClick={onClose}></button>
+            </div>
+            <div className="modal-body">
+              <div className="mb-3">
+                <h6 className="text-muted mb-2">Description</h6>
+                <p>{homework.description || 'No description provided.'}</p>
+              </div>
+              <div className="row g-3">
+                <div className="col-md-6">
+                  <h6 className="text-muted mb-2">Subject</h6>
+                  <p className="mb-0">
+                    {homework.Subject ? (
+                      <span className="badge bg-info">
+                        <i className="bi bi-book me-1"></i>
+                        {homework.Subject.name}
+                      </span>
+                    ) : (
+                      'No subject assigned'
+                    )}
+                  </p>
+                </div>
+                <div className="col-md-6">
+                  <h6 className="text-muted mb-2">State</h6>
+                  <p className="mb-0">
+                    {homework.State ? (
+                      <span className="badge" style={{ backgroundColor: homework.State.color }}>
+                        <i className={`bi ${homework.State.icon} me-1`}></i>
+                        {homework.State.name}
+                      </span>
+                    ) : (
+                      'No state assigned'
+                    )}
+                  </p>
+                </div>
+                <div className="col-12">
+                  <h6 className="text-muted mb-2">Deadline</h6>
+                  <p className="mb-0">
+                    <i className="bi bi-calendar-event me-2"></i>
+                    {new Date(homework.deadline).toLocaleDateString()} at {new Date(homework.deadline).toLocaleTimeString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <Link to={`/homeworks/edit/${homework.id}`} className="btn btn-primary">
+                <i className="bi bi-pencil me-2"></i>
+                Edit Homework
+              </Link>
+              <button type="button" className="btn btn-secondary" onClick={onClose}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div 
+        className="modal-backdrop fade show"
+        onClick={onClose}
+      ></div>
+    </>
+  );
+};
+
+HomeworkModal.propTypes = {
+  homework: PropTypes.shape({
+    id: PropTypes.number,
+    title: PropTypes.string,
+    description: PropTypes.string,
+    deadline: PropTypes.string,
+    Subject: PropTypes.shape({
+      id: PropTypes.number,
+      name: PropTypes.string
+    }),
+    State: PropTypes.shape({
+      id: PropTypes.number,
+      name: PropTypes.string,
+      color: PropTypes.string,
+      icon: PropTypes.string
+    })
+  }),
+  show: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired
+};
+
+const KanbanColumn = ({ title, tasks, onDragOver, onDrop, color, onTaskClick }) => {
   const [isDragOver, setIsDragOver] = useState(false);
 
   const handleDragOver = (e) => {
@@ -24,9 +131,9 @@ const KanbanColumn = ({ title, tasks, onDragOver, onDrop, color }) => {
     <div 
       className={`card h-100 shadow-sm ${isDragOver ? 'border-primary' : ''}`}
       style={{ 
-        minWidth: '300px', 
+        minWidth: '350px', 
         flex: '1',
-        maxWidth: '400px',
+        maxWidth: '450px',
         transition: 'all 0.2s ease-in-out',
         transform: isDragOver ? 'scale(1.02)' : 'scale(1)',
       }}
@@ -67,6 +174,8 @@ const KanbanColumn = ({ title, tasks, onDragOver, onDrop, color }) => {
               }}
               onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
               onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              onClick={() => onTaskClick(task)}
+              role="button"
             >
               <div className="card-body">
                 <h6 className="card-title mb-2">{task.title}</h6>
@@ -120,6 +229,7 @@ KanbanColumn.propTypes = {
   onDragOver: PropTypes.func.isRequired,
   onDrop: PropTypes.func.isRequired,
   color: PropTypes.string,
+  onTaskClick: PropTypes.func.isRequired
 };
 
 const KanbanBoard = () => {
@@ -127,6 +237,8 @@ const KanbanBoard = () => {
   const [homeworks, setHomeworks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedHomework, setSelectedHomework] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -135,8 +247,6 @@ const KanbanBoard = () => {
           getStates(),
           getHomeworks()
         ]);
-        console.log('States:', statesResponse.data);
-        console.log('Homeworks:', homeworksResponse.data);
         setStates(statesResponse.data);
         setHomeworks(homeworksResponse.data);
         setLoading(false);
@@ -188,6 +298,16 @@ const KanbanBoard = () => {
     }
   };
 
+  const handleTaskClick = (homework) => {
+    setSelectedHomework(homework);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedHomework(null);
+  };
+
   if (loading) {
     return (
       <div className="d-flex justify-content-center align-items-center p-5">
@@ -223,26 +343,29 @@ const KanbanBoard = () => {
   }), {});
 
   return (
-    <div className="container-fluid p-4">
-      <div className="d-flex align-items-center mb-4">
-        <h2 className="mb-0">
-          <i className="bi bi-kanban me-2"></i>
-          Homework Kanban Board
-        </h2>
+    <div className="d-flex flex-column h-100" style={{ margin: '-1rem' }}>
+      <div className="container-fluid px-4 py-3">
+        <div className="d-flex align-items-center">
+          <h2 className="mb-0">
+            <i className="bi bi-kanban me-2"></i>
+            Homework Kanban Board
+          </h2>
+        </div>
       </div>
+
       {error && (
-        <div className="alert alert-danger mb-4">
-          <i className="bi bi-exclamation-triangle me-2"></i>
-          {error}
+        <div className="container-fluid px-4">
+          <div className="alert alert-danger mb-3">
+            <i className="bi bi-exclamation-triangle me-2"></i>
+            {error}
+          </div>
         </div>
       )}
+
       <div 
-        className="d-flex gap-4 overflow-auto pb-4" 
+        className="flex-grow-1 d-flex gap-4 overflow-auto p-4" 
         style={{ 
-          minHeight: '75vh',
-          padding: '1rem',
           backgroundColor: '#f8f9fa',
-          borderRadius: '0.5rem'
         }}
       >
         {/* Render No State column first */}
@@ -253,6 +376,7 @@ const KanbanBoard = () => {
           onDragOver={handleDragOver}
           onDrop={handleDrop(null)}
           color="#6c757d"
+          onTaskClick={handleTaskClick}
         />
         
         {/* Render all other state columns */}
@@ -266,10 +390,18 @@ const KanbanBoard = () => {
               onDragOver={handleDragOver}
               onDrop={handleDrop(parseInt(columnId))}
               color={stateData?.color || '#f8f9fa'}
+              onTaskClick={handleTaskClick}
             />
           );
         })}
       </div>
+
+      {/* Homework Details Modal */}
+      <HomeworkModal
+        homework={selectedHomework}
+        show={showModal}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 };
