@@ -14,13 +14,15 @@ datasource db {
 }
 
 model Homework {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String
-  deadline    DateTime
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  subjectId   Int?
+  id                    Int      @id @default(autoincrement())
+  title                 String
+  description          String
+  deadline             DateTime
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  subjectId            Int?
+  notificationSent     Boolean  @default(false)
+  notificationThreshold Int      @default(24)  // Heures avant la deadline pour envoyer la notification
   stateId     Int?
 
   Subject Subject? @relation(fields: [subjectId], references: [id])
