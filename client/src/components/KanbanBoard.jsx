@@ -2,35 +2,85 @@ import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { getStates, getHomeworks, updateHomework } from '../services/api';
 
-const KanbanColumn = ({ title, tasks, onDragOver, onDrop }) => {
+const KanbanColumn = ({ title, tasks, onDragOver, onDrop, color }) => {
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    if (!isDragOver) setIsDragOver(true);
+    onDragOver(e);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e) => {
+    setIsDragOver(false);
+    onDrop(e);
+  };
+
   return (
     <div 
-      className="card h-100"
-      style={{ minWidth: '300px', flex: '1' }}
-      onDragOver={onDragOver}
-      onDrop={onDrop}
+      className={`card h-100 shadow-sm ${isDragOver ? 'border-primary' : ''}`}
+      style={{ 
+        minWidth: '300px', 
+        flex: '1',
+        maxWidth: '400px',
+        transition: 'all 0.2s ease-in-out',
+        transform: isDragOver ? 'scale(1.02)' : 'scale(1)',
+      }}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
     >
-      <div className="card-header bg-light">
-        <h5 className="card-title mb-0">{title}</h5>
+      <div 
+        className="card-header"
+        style={{ 
+          backgroundColor: color || '#f8f9fa',
+          borderBottom: `2px solid ${color || '#dee2e6'}`,
+          color: color ? '#fff' : 'inherit'
+        }}
+      >
+        <h5 className="card-title mb-0 d-flex align-items-center">
+          <span className="me-2">{title}</span>
+          <span className="badge bg-light text-dark ms-auto">{tasks.length}</span>
+        </h5>
       </div>
-      <div className="card-body bg-light">
+      <div 
+        className="card-body"
+        style={{
+          backgroundColor: isDragOver ? 'rgba(0,123,255,0.05)' : '#fff',
+          padding: '1rem',
+        }}
+      >
         <div className="d-flex flex-column gap-3">
           {tasks.map((task) => (
             <div
               key={task.id}
               draggable
               onDragStart={(e) => e.dataTransfer.setData('taskId', task.id.toString())}
-              className="card cursor-move"
+              className="card shadow-sm hover-shadow"
+              style={{
+                cursor: 'move',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
             >
               <div className="card-body">
-                <h6 className="card-title">{task.title}</h6>
-                <p className="card-text small text-muted mb-2">{task.description}</p>
-                <div className="d-flex align-items-center justify-content-between">
+                <h6 className="card-title mb-2">{task.title}</h6>
+                <p className="card-text small text-muted mb-2" style={{ minHeight: '40px' }}>
+                  {task.description}
+                </p>
+                <div className="d-flex align-items-center justify-content-between border-top pt-2 mt-2">
                   <small className="text-muted">
-                    Due: {new Date(task.deadline).toLocaleDateString()}
+                    <i className="bi bi-calendar-event me-1"></i>
+                    {new Date(task.deadline).toLocaleDateString()}
                   </small>
                   {task.Subject && (
-                    <span className="badge bg-info text-white me-2">
+                    <span className="badge bg-info">
+                      <i className="bi bi-book me-1"></i>
                       {task.Subject.name}
                     </span>
                   )}
@@ -39,9 +89,12 @@ const KanbanColumn = ({ title, tasks, onDragOver, onDrop }) => {
             </div>
           ))}
           {tasks.length === 0 && (
-            <div className="text-center text-muted p-3">
+            <div 
+              className="text-center text-muted p-4 border border-dashed rounded"
+              style={{ borderStyle: 'dashed' }}
+            >
               <i className="bi bi-inbox fs-4 d-block mb-2"></i>
-              No homeworks
+              <span className="small">No homeworks</span>
             </div>
           )}
         </div>
@@ -66,6 +119,7 @@ KanbanColumn.propTypes = {
   ).isRequired,
   onDragOver: PropTypes.func.isRequired,
   onDrop: PropTypes.func.isRequired,
+  color: PropTypes.string,
 };
 
 const KanbanBoard = () => {
@@ -171,33 +225,50 @@ const KanbanBoard = () => {
   return (
     <div className="container-fluid p-4">
       <div className="d-flex align-items-center mb-4">
-        <h2 className="mb-0">Homework Kanban Board</h2>
+        <h2 className="mb-0">
+          <i className="bi bi-kanban me-2"></i>
+          Homework Kanban Board
+        </h2>
       </div>
       {error && (
         <div className="alert alert-danger mb-4">
+          <i className="bi bi-exclamation-triangle me-2"></i>
           {error}
         </div>
       )}
-      <div className="d-flex gap-4 overflow-auto pb-4" style={{ minHeight: '70vh' }}>
+      <div 
+        className="d-flex gap-4 overflow-auto pb-4" 
+        style={{ 
+          minHeight: '75vh',
+          padding: '1rem',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '0.5rem'
+        }}
+      >
         {/* Render No State column first */}
         <KanbanColumn
           key="noState"
-          title={noStateColumn.title}
+          title="No State"
           tasks={noStateColumn.tasks}
           onDragOver={handleDragOver}
           onDrop={handleDrop(null)}
+          color="#6c757d"
         />
         
         {/* Render all other state columns */}
-        {Object.entries(stateColumns).map(([columnId, column]) => (
-          <KanbanColumn
-            key={columnId}
-            title={column.title}
-            tasks={column.tasks}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop(parseInt(columnId))}
-          />
-        ))}
+        {Object.entries(stateColumns).map(([columnId, column]) => {
+          const stateData = states.find(s => s.id === parseInt(columnId));
+          return (
+            <KanbanColumn
+              key={columnId}
+              title={column.title}
+              tasks={column.tasks}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop(parseInt(columnId))}
+              color={stateData?.color || '#f8f9fa'}
+            />
+          );
+        })}
       </div>
     </div>
   );
