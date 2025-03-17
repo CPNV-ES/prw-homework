@@ -72,7 +72,7 @@ function SubjectForm() {
   }
 
   return (
-    <div>
+    <div className="container">
       <h2>{isEditMode ? 'Edit Subject' : 'Create New Subject'}</h2>
       
       {error && <div className="alert alert-danger">{error}</div>}

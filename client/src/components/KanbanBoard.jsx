@@ -343,9 +343,9 @@ const KanbanBoard = () => {
   }), {});
 
   return (
-    <div className="d-flex flex-column h-100" style={{ margin: '-1rem' }}>
-      <div className="container-fluid px-4 py-3">
         <div className="d-flex align-items-center">
+    <div className="d-flex flex-column h-100">
+      <div className="container-fluid container px-4 py-3">
           <h2 className="mb-0">
             <i className="bi bi-kanban me-2"></i>
             Homework Kanban Board

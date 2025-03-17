@@ -19,7 +19,7 @@ function App() {
       <Router>
         <div className="App">
           <Navbar />
-          <div className="container mt-4">
+          <div className="mt-4">
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<Home />} />

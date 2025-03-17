@@ -49,7 +49,7 @@ function StateList() {
   }
 
   return (
-    <div>
+    <div className="container">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>States</h2>
         <Link to="/states/new" className="btn btn-primary">

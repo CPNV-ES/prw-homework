@@ -49,7 +49,7 @@ function SubjectList() {
   }
 
   return (
-    <div>
+    <div className="container">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>Subjects</h2>
         <Link to="/subjects/new" className="btn btn-primary">

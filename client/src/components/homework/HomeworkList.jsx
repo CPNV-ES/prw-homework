@@ -66,7 +66,7 @@ function HomeworkList() {
   }
 
   return (
-    <div>
+    <div className="container">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>Homeworks</h2>
         <Link to="/homeworks/new" className="btn btn-primary">

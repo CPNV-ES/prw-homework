@@ -104,7 +104,7 @@ function StateForm() {
   }
 
   return (
-    <div>
+    <div className="container">
       <h2>{isEditMode ? 'Edit State' : 'Create New State'}</h2>
       
       {error && <div className="alert alert-danger">{error}</div>}
