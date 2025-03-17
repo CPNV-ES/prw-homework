@@ -42,6 +42,7 @@ DATABASE_URL="file:./dev.db"
 
 ```bash
 npx prisma migrate dev
+npx prisma db seed
 ```
 
 ## Authentication Setup
