@@ -21,8 +21,10 @@ model Homework {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   subjectId   Int?
+  stateId     Int?
 
   Subject Subject? @relation(fields: [subjectId], references: [id])
+  State   State?   @relation(fields: [stateId], references: [id])
 }
 
 model Subject {
@@ -32,10 +34,11 @@ model Subject {
 }
 
 model State {
-  id    Int    @id @default(autoincrement())
-  name  String
-  color String
-  icon  String
+  id        Int        @id @default(autoincrement())
+  name      String
+  color     String
+  icon      String
+  homeworks Homework[]
 }
 
 model User {
