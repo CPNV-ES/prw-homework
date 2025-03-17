@@ -1,8 +1,26 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { useEffect, useRef } from "react";
+import * as bootstrap from 'bootstrap';
 
 function Navbar() {
   const { user, loading, logout } = useAuth();
+  const dropdownRef = useRef(null);
+  const dropdownInstance = useRef(null);
+
+  useEffect(() => {
+    // Initialize dropdown when component mounts
+    if (dropdownRef.current) {
+      dropdownInstance.current = new bootstrap.Dropdown(dropdownRef.current);
+    }
+
+    // Cleanup dropdown when component unmounts
+    return () => {
+      if (dropdownInstance.current) {
+        dropdownInstance.current.dispose();
+      }
+    };
+  }, []);
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -30,10 +48,38 @@ function Navbar() {
             </li>
             {user && (
               <>
-                <li className="nav-item">
-                  <Link className="nav-link" to="/homeworks">
+                <li className="nav-item dropdown">
+                  <button
+                    ref={dropdownRef}
+                    className="nav-link dropdown-toggle btn btn-link"
+                    type="button"
+                    id="homeworksDropdown"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
                     Homeworks
-                  </Link>
+                  </button>
+                  <ul 
+                    className="dropdown-menu" 
+                    aria-labelledby="homeworksDropdown"
+                  >
+                    <li>
+                      <Link className="dropdown-item" to="/homeworks">
+                        <i className="bi bi-list-task me-2"></i>List View
+                      </Link>
+                    </li>
+                    <li>
+                      <Link className="dropdown-item" to="/homeworks/kanban">
+                        <i className="bi bi-kanban me-2"></i>Kanban Board
+                      </Link>
+                    </li>
+                    <li><hr className="dropdown-divider" /></li>
+                    <li>
+                      <Link className="dropdown-item" to="/homeworks/new">
+                        <i className="bi bi-plus-circle me-2"></i>New Homework
+                      </Link>
+                    </li>
+                  </ul>
                 </li>
                 <li className="nav-item">
                   <Link className="nav-link" to="/subjects">
