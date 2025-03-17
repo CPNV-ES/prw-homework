@@ -11,6 +11,7 @@ import Login from "./components/auth/Login";
 import DiscordCallback from "./components/auth/DiscordCallback";
 import { AuthProvider } from "./components/auth/AuthProvider";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import KanbanBoard from "./components/KanbanBoard";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
               {/* Protected route group */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/homeworks" element={<HomeworkList />} />
+                <Route path="/homeworks/kanban" element={<KanbanBoard />} />
                 <Route path="/homeworks/new" element={<HomeworkForm />} />
                 <Route path="/homeworks/edit/:id" element={<HomeworkForm />} />
                 <Route path="/subjects" element={<SubjectList />} />
