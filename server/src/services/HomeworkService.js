@@ -1,7 +1,7 @@
 import prisma from "../../prisma/prismaClient.js";
 
 export default class HomeworkService {
-  async createHomework(title, description, deadline, subjectId) {
+  async createHomework(title, description, deadline, subjectId, stateId) {
     try {
       const newHomework = await prisma.homework.create({
         data: {
@@ -9,6 +9,11 @@ export default class HomeworkService {
           description: description,
           deadline: new Date(deadline),
           subjectId: subjectId,
+          stateId: stateId,
+        },
+        include: {
+          Subject: true,
+          State: true,
         },
       });
       return newHomework;
@@ -20,7 +25,12 @@ export default class HomeworkService {
 
   async getAllHomework() {
     try {
-      const homeworks = await prisma.homework.findMany();
+      const homeworks = await prisma.homework.findMany({
+        include: {
+          Subject: true,
+          State: true,
+        },
+      });
       return homeworks;
     } catch (error) {
       console.error("Error fetching homeworks:", error);
@@ -32,6 +42,10 @@ export default class HomeworkService {
     try {
       const homework = await prisma.homework.findUnique({
         where: { id: id },
+        include: {
+          Subject: true,
+          State: true,
+        },
       });
       return homework;
     } catch (error) {
@@ -40,7 +54,7 @@ export default class HomeworkService {
     }
   }
 
-  async updateHomework(id, title, description, deadline, subjectId) {
+  async updateHomework(id, title, description, deadline, subjectId, stateId) {
     try {
       const updatedHomework = await prisma.homework.update({
         where: { id: id },
@@ -49,6 +63,11 @@ export default class HomeworkService {
           description: description,
           deadline: new Date(deadline),
           subjectId: subjectId,
+          stateId: stateId,
+        },
+        include: {
+          Subject: true,
+          State: true,
         },
       });
       return updatedHomework;

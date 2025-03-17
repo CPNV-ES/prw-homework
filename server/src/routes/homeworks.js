@@ -6,12 +6,13 @@ const service = new HomeworkService();
 
 router.post("/", async (req, res) => {
   try {
-    const { title, description, deadline, subjectId } = req.body;
+    const { title, description, deadline, subjectId, stateId } = req.body;
     const newHomework = await service.createHomework(
       title,
       description,
       deadline,
-      subjectId
+      subjectId,
+      stateId
     );
     res.status(201).json(newHomework);
   } catch (error) {
@@ -45,13 +46,14 @@ router.get("/:id", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, deadline, subjectId } = req.body;
+    const { title, description, deadline, subjectId, stateId } = req.body;
     const updatedHomework = await service.updateHomework(
       parseInt(id),
       title,
       description,
       deadline,
-      subjectId
+      subjectId,
+      stateId
     );
     res.status(200).json(updatedHomework);
   } catch (error) {
