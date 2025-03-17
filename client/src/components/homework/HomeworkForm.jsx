@@ -1,16 +1,22 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
   getHomeworkById, 
   createHomework, 
   updateHomework, 
-  getSubjects 
+  getSubjects,
+  getStates 
 } from '../../services/api';
 
 function HomeworkForm() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const isEditMode = !!id;
+
+  // Get stateId from URL query parameters
+  const queryParams = new URLSearchParams(location.search);
+  const initialStateId = queryParams.get('stateId');
 
   const [formData, setFormData] = useState({
     title: '',
@@ -18,9 +24,11 @@ function HomeworkForm() {
     date: '',
     time: '23:59',
     subjectId: '',
+    stateId: initialStateId || '',
     notificationThreshold: 24
   });
   const [subjects, setSubjects] = useState([]);
+  const [states, setStates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -30,9 +38,13 @@ function HomeworkForm() {
       try {
         setLoading(true);
         
-        // Fetch subjects
-        const subjectsResponse = await getSubjects();
+        // Fetch subjects and states
+        const [subjectsResponse, statesResponse] = await Promise.all([
+          getSubjects(),
+          getStates()
+        ]);
         setSubjects(subjectsResponse.data);
+        setStates(statesResponse.data);
         
         // If in edit mode, fetch homework data
         if (isEditMode) {
@@ -50,6 +62,7 @@ function HomeworkForm() {
             date: formattedDate,
             time: formattedTime,
             subjectId: homework.subjectId || '',
+            stateId: homework.stateId || '',
             notificationThreshold: homework.notificationThreshold || 24
           });
         }
@@ -88,6 +101,7 @@ function HomeworkForm() {
         description: formData.description,
         deadline: deadline.toISOString(),
         subjectId: formData.subjectId ? parseInt(formData.subjectId) : null,
+        stateId: formData.stateId ? parseInt(formData.stateId) : null,
         notificationThreshold: parseInt(formData.notificationThreshold)
       };
       
@@ -97,7 +111,7 @@ function HomeworkForm() {
         await createHomework(homeworkData);
       }
       
-      navigate('/homeworks');
+      navigate('/homeworks/kanban');
     } catch (err) {
       setError('Failed to save homework');
       setSubmitting(false);
@@ -114,119 +128,155 @@ function HomeworkForm() {
   }
 
   return (
-    <div>
-      <h2>{isEditMode ? 'Edit Homework' : 'Create New Homework'}</h2>
-      
-      {error && <div className="alert alert-danger">{error}</div>}
-      
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label htmlFor="title" className="form-label">Title</label>
-          <input
-            type="text"
-            className="form-control"
-            id="title"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        
-        <div className="mb-3">
-          <label htmlFor="description" className="form-label">Description</label>
-          <textarea
-            className="form-control"
-            id="description"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            rows="3"
-            required
-          ></textarea>
-        </div>
-        
-        <div className="row">
-          <div className="col-md-6 mb-3">
-            <label htmlFor="date" className="form-label">Date</label>
-            <input
-              type="date"
-              className="form-control"
-              id="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              required
-            />
+    <div className="row justify-content-center">
+      <div className="col-md-8">
+        <div className="card">
+          <div className="card-body">
+            <h2 className="card-title mb-4">
+              {isEditMode ? 'Edit Homework' : 'New Homework'}
+            </h2>
+            
+            {error && (
+              <div className="alert alert-danger" role="alert">
+                {error}
+              </div>
+            )}
+            
+            <form onSubmit={handleSubmit}>
+              <div className="mb-3">
+                <label htmlFor="title" className="form-label">Title</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="title"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              
+              <div className="mb-3">
+                <label htmlFor="description" className="form-label">Description</label>
+                <textarea
+                  className="form-control"
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows="3"
+                  required
+                ></textarea>
+              </div>
+              
+              <div className="row mb-3">
+                <div className="col-md-6">
+                  <label htmlFor="date" className="form-label">Due Date</label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    id="date"
+                    name="date"
+                    value={formData.date}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="col-md-6">
+                  <label htmlFor="time" className="form-label">Due Time</label>
+                  <input
+                    type="time"
+                    className="form-control"
+                    id="time"
+                    name="time"
+                    value={formData.time}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="mb-3">
+                <label htmlFor="subjectId" className="form-label">Subject</label>
+                <select
+                  className="form-select"
+                  id="subjectId"
+                  name="subjectId"
+                  value={formData.subjectId}
+                  onChange={handleChange}
+                >
+                  <option value="">Select a subject</option>
+                  {subjects.map(subject => (
+                    <option key={subject.id} value={subject.id}>
+                      {subject.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="mb-3">
+                <label htmlFor="stateId" className="form-label">State</label>
+                <select
+                  className="form-select"
+                  id="stateId"
+                  name="stateId"
+                  value={formData.stateId}
+                  onChange={handleChange}
+                >
+                  <option value="">Select a state</option>
+                  {states.map(state => (
+                    <option key={state.id} value={state.id}>
+                      {state.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="mb-3">
+                <label htmlFor="notificationThreshold" className="form-label">
+                  Notification Threshold (hours before deadline)
+                </label>
+                <input
+                  type="number"
+                  className="form-control"
+                  id="notificationThreshold"
+                  name="notificationThreshold"
+                  value={formData.notificationThreshold}
+                  onChange={handleChange}
+                  min="1"
+                  max="168"
+                  required
+                />
+              </div>
+              
+              <div className="d-flex gap-2">
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={submitting}
+                >
+                  {submitting ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Homework'
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => navigate('/homeworks/kanban')}
+                  disabled={submitting}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
-          
-          <div className="col-md-6 mb-3">
-            <label htmlFor="time" className="form-label">Time</label>
-            <input
-              type="time"
-              className="form-control"
-              id="time"
-              name="time"
-              value={formData.time}
-              onChange={handleChange}
-              required
-            />
-          </div>
         </div>
-        
-        <div className="mb-3">
-          <label htmlFor="subjectId" className="form-label">Subject</label>
-          <select
-            className="form-select"
-            id="subjectId"
-            name="subjectId"
-            value={formData.subjectId}
-            onChange={handleChange}
-          >
-            <option value="">Select a subject (optional)</option>
-            {subjects.map(subject => (
-              <option key={subject.id} value={subject.id}>
-                {subject.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        
-        <div className="mb-3">
-          <label htmlFor="notificationThreshold" className="form-label">Notification Reminder (hours before deadline)</label>
-          <input
-            type="number"
-            className="form-control"
-            id="notificationThreshold"
-            name="notificationThreshold"
-            value={formData.notificationThreshold}
-            onChange={handleChange}
-            min="1"
-            max="168"
-            required
-          />
-          <div className="form-text">
-            Specify how many hours before the deadline you want to receive a notification (between 1 and 168 hours / 1 week).
-          </div>
-        </div>
-        
-        <div className="d-flex gap-2">
-          <button 
-            type="submit" 
-            className="btn btn-primary"
-            disabled={submitting}
-          >
-            {submitting ? 'Saving...' : 'Save'}
-          </button>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => navigate('/homeworks')}
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
+      </div>
     </div>
   );
 }
