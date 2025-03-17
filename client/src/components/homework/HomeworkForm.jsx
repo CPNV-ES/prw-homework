@@ -16,7 +16,8 @@ function HomeworkForm() {
     title: '',
     description: '',
     deadline: '',
-    subjectId: ''
+    subjectId: '',
+    notificationThreshold: 24
   });
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +46,8 @@ function HomeworkForm() {
             title: homework.title,
             description: homework.description,
             deadline: formattedDate,
-            subjectId: homework.subjectId || ''
+            subjectId: homework.subjectId || '',
+            notificationThreshold: homework.notificationThreshold || 24
           });
         }
         
@@ -164,6 +166,24 @@ function HomeworkForm() {
               </option>
             ))}
           </select>
+        </div>
+        
+        <div className="mb-3">
+          <label htmlFor="notificationThreshold" className="form-label">Notification Reminder (hours before deadline)</label>
+          <input
+            type="number"
+            className="form-control"
+            id="notificationThreshold"
+            name="notificationThreshold"
+            value={formData.notificationThreshold}
+            onChange={handleChange}
+            min="1"
+            max="168"
+            required
+          />
+          <div className="form-text">
+            Specify how many hours before the deadline you want to receive a notification (between 1 and 168 hours / 1 week).
+          </div>
         </div>
         
         <div className="d-flex gap-2">
