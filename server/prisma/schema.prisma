@@ -37,3 +37,13 @@ model State {
   color String
   icon  String
 }
+
+model User {
+  id        String   @id @default(uuid())
+  discordId String   @unique
+  email     String   @unique
+  username  String
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

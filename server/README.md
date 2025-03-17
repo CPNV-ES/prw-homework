@@ -1,6 +1,113 @@
-# PRW Homework Backend
+# Homework Manager API
 
-A RESTful API server for managing homework assignments, subjects, and their states. Built with Express.js and Prisma.
+A modern REST API for managing homework assignments, built with Express and Prisma.
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v22.11.0)
+- npm (v11.1.0)
+
+## Installation
+
+1. **Clone the repository**
+
+```bash
+git clone https://github.com/yourusername/homework-manager.git
+cd homework-manager/server
+```
+
+2. **Install dependencies**
+
+```bash
+npm install
+```
+
+3. **Configure environment variables**
+
+Create a `.env` file in the server directory:
+
+```bash
+cp .env.example .env
+```
+
+Edit the `.env` file with your database connection string:
+
+```
+DATABASE_URL="file:./dev.db"
+```
+
+4. **Set up the database**
+
+```bash
+npx prisma migrate dev
+```
+
+## Authentication Setup
+
+The application uses Discord OAuth2 for authentication. Follow these steps to set it up:
+
+1. **Create a Discord application**
+
+   - Go to [Discord Developer Portal](https://discord.com/developers/applications)
+   - Create a new application
+   - Navigate to OAuth2 settings
+   - Add redirect URL: `http://localhost:5173/auth/discord/callback`
+
+2. **Configure authentication environment variables**
+
+Add the following to your `.env` file:
+
+```
+# Discord OAuth2 credentials
+DISCORD_CLIENT_ID="your_discord_client_id"
+DISCORD_CLIENT_SECRET="your_discord_client_secret"
+DISCORD_REDIRECT_URI="http://localhost:5173/auth/discord/callback"
+
+# Frontend URL
+FRONTEND_URL="http://localhost:5173"
+
+# JWT configuration
+JWT_SECRET="generate_a_strong_random_secret_here"
+```
+
+> **Security Tip**: For production, generate a strong random JWT secret using a tool like:
+>
+> ```bash
+> node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+> ```
+
+## Running the Server
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+The API will be available at `http://localhost:3000`.
+
+## API Documentation
+
+| Endpoint                 | Method | Description                     |
+| ------------------------ | ------ | ------------------------------- |
+| `/auth/discord`          | GET    | Initiates Discord OAuth2 flow   |
+| `/auth/discord/callback` | GET    | Handles Discord OAuth2 callback |
+| `/auth/verify`           | GET    | Verifies authentication token   |
+| `/auth/logout`           | GET    | Logs out the current user       |
+| `/homeworks`             | GET    | Lists all homeworks             |
+| `/homeworks/:id`         | GET    | Gets a specific homework        |
+| `/subjects`              | GET    | Lists all subjects              |
+| `/states`                | GET    | Lists all states                |
+
+## Testing
+
+Run tests with:
+
+```bash
+npm test
+```
 
 ## Features
 
@@ -9,87 +116,6 @@ A RESTful API server for managing homework assignments, subjects, and their stat
 - State tracking for assignments
 - End-to-end testing with Vitest
 - Database management with Prisma ORM
-
-## Prerequisites
-
-- Node.js (v22.11.0)
-- npm (v11.1.0)
-
-## Installation
-
-1. Clone the repository
-
-```bash
-git clone <repository-url>
-cd prw-homework/server
-```
-
-2. Install dependencies
-
-```bash
-npm install
-```
-
-3. Set up environment variables
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` and configure your database connection string and other settings:
-
-```
-DATABASE_URL="file:./dev.db"
-PORT=3000
-```
-
-4. Set up the database
-
-```bash
-npx prisma migrate dev
-```
-
-## Running the Application
-
-Run the server:
-
-```bash
-npm start
-```
-
-## Testing
-
-Run tests in watch mode:
-
-```bash
-npm test
-```
-
-## API Endpoints
-
-### Homeworks
-
-- `GET /homeworks` - Get all homeworks
-- `GET /homeworks/:id` - Get a specific homework
-- `POST /homeworks` - Create a new homework
-- `PUT /homeworks/:id` - Update a homework
-- `DELETE /homeworks/:id` - Delete a homework
-
-### Subjects
-
-- `GET /subjects` - Get all subjects
-- `GET /subjects/:id` - Get a specific subject
-- `POST /subjects` - Create a new subject
-- `PUT /subjects/:id` - Update a subject
-- `DELETE /subjects/:id` - Delete a subject
-
-### States
-
-- `GET /states` - Get all states
-- `GET /states/:id` - Get a specific state
-- `POST /states` - Create a new state
-- `PUT /states/:id` - Update a state
-- `DELETE /states/:id` - Delete a state
 
 ## Project Structure
 
