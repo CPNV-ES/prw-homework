@@ -22,7 +22,6 @@ function App() {
           <div className="mt-4">
             <Routes>
               {/* Public routes */}
-              <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route
                 path="/auth/discord/callback"
@@ -31,6 +30,7 @@ function App() {
 
               {/* Protected route group */}
               <Route element={<ProtectedRoute />}>
+                <Route path="/" element={<Home />} />
                 <Route path="/homeworks" element={<HomeworkList />} />
                 <Route path="/homeworks/kanban" element={<KanbanBoard />} />
                 <Route path="/homeworks/new" element={<HomeworkForm />} />
