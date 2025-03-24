@@ -1,35 +1,53 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import HomeworkList from "./components/homework/HomeworkList";
+import HomeworkForm from "./components/homework/HomeworkForm";
+import SubjectList from "./components/subject/SubjectList";
+import SubjectForm from "./components/subject/SubjectForm";
+import StateList from "./components/state/StateList";
+import StateForm from "./components/state/StateForm";
+import Home from "./components/Home";
+import Login from "./components/auth/Login";
+import DiscordCallback from "./components/auth/DiscordCallback";
+import { AuthProvider } from "./components/auth/AuthProvider";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import KanbanBoard from "./components/KanbanBoard";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <AuthProvider>
+      <Router>
+        <div className="App">
+          <Navbar />
+          <div className="mt-4">
+            <Routes>
+              {/* Public routes */}
+              <Route path="/login" element={<Login />} />
+              <Route
+                path="/auth/discord/callback"
+                element={<DiscordCallback />}
+              />
+
+              {/* Protected route group */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/homeworks" element={<HomeworkList />} />
+                <Route path="/homeworks/kanban" element={<KanbanBoard />} />
+                <Route path="/homeworks/new" element={<HomeworkForm />} />
+                <Route path="/homeworks/edit/:id" element={<HomeworkForm />} />
+                <Route path="/subjects" element={<SubjectList />} />
+                <Route path="/subjects/new" element={<SubjectForm />} />
+                <Route path="/subjects/edit/:id" element={<SubjectForm />} />
+                <Route path="/states" element={<StateList />} />
+                <Route path="/states/new" element={<StateForm />} />
+                <Route path="/states/edit/:id" element={<StateForm />} />
+              </Route>
+            </Routes>
+          </div>
+        </div>
+      </Router>
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;
