@@ -109,7 +109,7 @@ HomeworkModal.propTypes = {
   onClose: PropTypes.func.isRequired
 };
 
-const KanbanColumn = ({ title, tasks, onDragOver, onDrop, color, onTaskClick }) => {
+const KanbanColumn = ({ title, tasks, onDragOver, onDrop, color, onTaskClick, onHeaderDragStart, onHeaderDragOver, onHeaderDrop }) => {
   const [isDragOver, setIsDragOver] = useState(false);
 
   const handleDragOver = (e) => {
@@ -143,10 +143,16 @@ const KanbanColumn = ({ title, tasks, onDragOver, onDrop, color, onTaskClick }) 
     >
       <div 
         className="card-header"
+        draggable
+        onDragStart={onHeaderDragStart}
+        onDragOver={onHeaderDragOver}
+        onDrop={onHeaderDrop}
         style={{ 
           backgroundColor: color || '#f8f9fa',
           borderBottom: `2px solid ${color || '#dee2e6'}`,
-          color: color ? '#fff' : 'inherit'
+          color: color ? '#fff' : 'inherit',
+          cursor: 'move',
+          userSelect: 'none'
         }}
       >
         <h5 className="card-title mb-0 d-flex align-items-center">
@@ -229,7 +235,10 @@ KanbanColumn.propTypes = {
   onDragOver: PropTypes.func.isRequired,
   onDrop: PropTypes.func.isRequired,
   color: PropTypes.string,
-  onTaskClick: PropTypes.func.isRequired
+  onTaskClick: PropTypes.func.isRequired,
+  onHeaderDragStart: PropTypes.func.isRequired,
+  onHeaderDragOver: PropTypes.func.isRequired,
+  onHeaderDrop: PropTypes.func.isRequired
 };
 
 const KanbanBoard = () => {
@@ -242,6 +251,7 @@ const KanbanBoard = () => {
   const [showModal, setShowModal] = useState(false);
   const [showNewHomeworkModal, setShowNewHomeworkModal] = useState(false);
   const [selectedStateId, setSelectedStateId] = useState(null);
+  const [columnOrder, setColumnOrder] = useState([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -264,6 +274,16 @@ const KanbanBoard = () => {
         setStates(statesResponse.data);
         setHomeworks(homeworksResponse.data);
         setSubjects(subjectsResponse.data);
+        
+        // Load column order from localStorage or use default order
+        const savedOrder = localStorage.getItem('kanbanColumnOrder');
+        if (savedOrder) {
+          setColumnOrder(JSON.parse(savedOrder));
+        } else {
+          // Default order: No State first, then all other states
+          setColumnOrder(['noState', ...statesResponse.data.map(state => state.id.toString())]);
+        }
+        
         setLoading(false);
       } catch (err) {
         setError('Failed to load data');
@@ -275,8 +295,44 @@ const KanbanBoard = () => {
     fetchData();
   }, []);
 
+  // Save column order to localStorage whenever it changes
+  useEffect(() => {
+    if (columnOrder.length > 0) {
+      localStorage.setItem('kanbanColumnOrder', JSON.stringify(columnOrder));
+    }
+  }, [columnOrder]);
+
   const handleDragOver = (e) => {
     e.preventDefault();
+  };
+
+  const handleColumnDragStart = (e, columnId) => {
+    e.dataTransfer.setData('columnId', columnId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleColumnDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleColumnDrop = (e, targetColumnId) => {
+    e.preventDefault();
+    const draggedColumnId = e.dataTransfer.getData('columnId');
+    
+    if (draggedColumnId === targetColumnId) return;
+
+    setColumnOrder(prevOrder => {
+      const newOrder = [...prevOrder];
+      const draggedIndex = newOrder.indexOf(draggedColumnId);
+      const targetIndex = newOrder.indexOf(targetColumnId);
+      
+      // Remove dragged column and insert at new position
+      newOrder.splice(draggedIndex, 1);
+      newOrder.splice(targetIndex, 0, draggedColumnId);
+      
+      return newOrder;
+    });
   };
 
   const handleNewHomeworkDrop = (stateId) => (e) => {
@@ -475,8 +531,6 @@ const KanbanBoard = () => {
         </div>
       )}
 
-
-
       {/* Homework Details Modal */}
       <HomeworkModal
         homework={selectedHomework}
@@ -647,35 +701,46 @@ const KanbanBoard = () => {
       )}
 
       <div
-          className="flex-grow-1 d-flex gap-4 overflow-auto p-4"
-          style={{
-            backgroundColor: '#f8f9fa',
-          }}
+        className="flex-grow-1 d-flex gap-4 overflow-auto p-4"
+        style={{
+          backgroundColor: '#f8f9fa',
+        }}
       >
-        {/* Render No State column first */}
-        <KanbanColumn
-            key="noState"
-            title="No State"
-            tasks={noStateColumn.tasks}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop(null)}
-            color="#6c757d"
-            onTaskClick={handleTaskClick}
-        />
-
-        {/* Render all other state columns */}
-        {Object.entries(stateColumns).map(([columnId, column]) => {
-          const stateData = states.find(s => s.id === parseInt(columnId));
-          return (
+        {/* Render columns in the specified order */}
+        {columnOrder.map((columnId) => {
+          if (columnId === 'noState') {
+            return (
               <KanbanColumn
-                  key={columnId}
-                  title={column.title}
-                  tasks={column.tasks}
-                  onDragOver={handleDragOver}
-                  onDrop={handleDrop(parseInt(columnId))}
-                  color={stateData?.color || '#f8f9fa'}
-                  onTaskClick={handleTaskClick}
+                key="noState"
+                title="No State"
+                tasks={noStateColumn.tasks}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop(null)}
+                color="#6c757d"
+                onTaskClick={handleTaskClick}
+                onHeaderDragStart={(e) => handleColumnDragStart(e, 'noState')}
+                onHeaderDragOver={handleColumnDragOver}
+                onHeaderDrop={(e) => handleColumnDrop(e, 'noState')}
               />
+            );
+          }
+
+          const column = stateColumns[columnId];
+          const stateData = states.find(s => s.id === parseInt(columnId));
+          
+          return (
+            <KanbanColumn
+              key={columnId}
+              title={column.title}
+              tasks={column.tasks}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop(parseInt(columnId))}
+              color={stateData?.color || '#f8f9fa'}
+              onTaskClick={handleTaskClick}
+              onHeaderDragStart={(e) => handleColumnDragStart(e, columnId)}
+              onHeaderDragOver={handleColumnDragOver}
+              onHeaderDrop={(e) => handleColumnDrop(e, columnId)}
+            />
           );
         })}
       </div>
